@@ -1,11 +1,13 @@
 from fastapi import FastAPI,Query,Path
 from typing import Annotated
+from fastapi.responses import HTMLResponse,FileResponse,RedirectResponse
 app= FastAPI()
 
 @app.get("/")
 def index():
-    return {"data":"Home page"}
-@app.get("/hello")
+   # return {"data":"Home page"}
+    return FileResponse('home.html')
+@app.get("/hello1")
 def hello(name):
     message = "hi."+name
     return {"message":message}
@@ -28,4 +30,15 @@ def read_items(
     name: Annotated[str, Query(min_length=3, max_length=10)]
 ):
     return {"name": name}
+
+@app.get("/hello")
+def hello_(name:Annotated[str,Query(min_length=3)]):
+    return {"message":"Hello"+name}
+
+@app.get("/img/logo")
+def logo():
+    return FileResponse("123.jpg")
+@app.get("/member")
+def member():
+    return RedirectResponse("https://www.google.com/")
 #uvicorn main:app --reload
