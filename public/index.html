@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h2>Test</h2>
+  <div>
+  <a href = 'https://www.google.com/'>google</a>
+  <h2>計算功能</h2>
+  <form action="/square">
+    輸入整數<input type="text" name="number"/>
+    <button>計算</button>
+  </form>
+  <h2>雙位數計算</h2>
+  <form action="/mutiply">
+    輸入1<input type="text" name="n1"/><br/>
+    輸入2<input type="text" name="n2"/><br/>
+    <button>計算</button>
+  </form> 
+  </div>
+  <h2>連線測試方法</h2>
+  <button onclick="connectPOST();">POST連線</button>
+  <button onclick="connectGET();">GET連線</button>
+  <script>
+    async function connectGET(){
+      let response=await fetch("/test",{
+        method:"GET"
+      });
+      let data=await response.json();
+      console.log(data);
+    }
+  </script>
+  <script>
+    async function connectPOST(){
+      let response=await fetch("/test",{
+        method:"POST"
+      });
+      let data=await response.json();
+      console.log(data);
+    }
+  </script>
+<h2>next</h2>
+<div>
+  <a href="http://127.0.0.1:8000/page.html">Another page</a>
+</div>
+
+</body>
+</html>

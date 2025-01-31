@@ -1,13 +1,16 @@
 from fastapi import FastAPI,Query,Path
 from typing import Annotated
 from fastapi.responses import HTMLResponse,FileResponse,RedirectResponse
+from fastapi.staticfiles import StaticFiles
 app= FastAPI()
 
-@app.get("/")
-def index():
-   # return {"data":"Home page"}
-    return FileResponse('home.html')
-@app.get("/hello1")
+@app.get("/test")
+def testGET():
+    return {"date":10, "methon":"GET"}
+@app.post("/test")
+def testPOST():
+    return {"date":True ,"methon":"POST"}
+
 def hello(name):
     message = "hi."+name
     return {"message":message}
@@ -18,12 +21,16 @@ def multiplay(n1,n2):
     n2 = int(n2)
     result = n1 * n2
     return {'result':result}
-@app.get("/square/{number}")
+@app.get("/square")
 def square(
-    number:Annotated[int,Path(gt=3,it=10)]
+    number:Annotated[int,None]
     ):
     number = int(number)
     return {'result':number*number}
+@app.get("/mutiply")
+def mutiply(n1:Annotated[int,None],n2:Annotated[int,None]):
+    result = n1*n2
+    return {"data":result}
 
 @app.get("/items/")
 def read_items(
@@ -41,4 +48,7 @@ def logo():
 @app.get("/member")
 def member():
     return RedirectResponse("https://www.google.com/")
+
+app.mount( "/",StaticFiles(directory="public",html=True))
+
 #uvicorn main:app --reload
