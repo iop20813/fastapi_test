@@ -1,31 +1,73 @@
-from fastapi import FastAPI,Query,Path,Body
+from fastapi import FastAPI,Query,Path,Body,Request
 from typing import Annotated
 from fastapi.responses import HTMLResponse,FileResponse,RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+from datetime import datetime
 import json
 import mysql.connector
+from starlette.middleware.sessions import SessionMiddleware
+
+# 定義請求模型
+class MessageCreate(BaseModel):
+    author: str
+    content: str
+
+# 定義響應模型
+class MessageResponse(BaseModel):
+    id: int
+    author: str
+    content: str
+    created_at: datetime
+
 app= FastAPI()
+app.add_middleware(SessionMiddleware, secret_key="test20585")  # secret_key請自行設計
+
 con = mysql.connector.connect(
     user = 'root',
     password='12395461',
     host = 'localhost',
     database = 'mydb'
 )
-@app.post("/api/message")
-def createMessage(body=Body(None)):
-    body=json.loads(body)
-    author=body["author"]
-    content=body["content"]
-    cursor=con.cursor()    
-    cursor.execute("INSERT INTO message(author,content) VALUES(%s,%s)",[author,content])
-    con.commit()
-    return{"ok":True}
 
-@app.get("/api/message")
+@app.get("/hello")
+def hello(request:Request,name):
+    request.session['name'] = name
+    return {"message": f"Hello, {name}!"}
+@app.get("/talk")
+def talk(request:Request):
+    if 'name' in request.session:
+        # 如果 session 中有 'name'，則使用它
+        name = request.session['name']
+        return {"message": f"Hello, {name} well comback!"}
+    else:
+        # 如果 session 中沒有 'name'，則返回一個提示
+        return {"message": "Hello, please provide your name!"}
+    
+@app.post("/api/message", response_model=MessageResponse)
+def createMessage(message: MessageCreate):
+    cursor=con.cursor()    
+    cursor.execute("INSERT INTO message(author,content) VALUES(%s,%s)",[message.author,message.content])
+    con.commit()
+    
+    # 獲取新插入的記錄
+    cursor.execute("SELECT * FROM message WHERE id = LAST_INSERT_ID()")
+    new_message = cursor.fetchone()
+    return {
+        "id": new_message[0],
+        "author": new_message[1],
+        "content": new_message[2],
+        "created_at": new_message[3]
+    }
+
+@app.get("/api/message", response_model=list[MessageResponse])
 def get_message():
     cursor = con.cursor(dictionary=True)
-    cursor.execute("SELECT*FROM message")
+    cursor.execute("SELECT * FROM message")
     data = cursor.fetchall()
+    # 將 create_time 映射到 created_at
+    for item in data:
+        item['created_at'] = item.pop('create_time')
     return data
 
 @app.delete("/api/message/{id}")

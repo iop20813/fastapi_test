@@ -9,54 +9,106 @@
 
 
 <body>
-  
-  <h2>Test</h2>
+  <h2>發送Requests 測試結果</h2>
   <div>
-    <a href='https://www.google.com/'>google</a>
-    <h2>計算功能</h2>
-    <form action="/square">
-      輸入整數<input type="text" name="number"/>
-      <button>計算</button>
-    </form>
-
-    <h2>雙位數計算</h2>
-    <form action="/mutiply">
-      輸入1<input type="text" name="n1"/><br/>
-      輸入2<input type="text" name="n2"/><br/>
-      <button>計算</button>
-    </form> 
+    <button onclick="hello();">Hello</button>
+    <button onclick="talk();">Talk</button>
   </div>
+  <script>
+    async function hello(){
+      try {
+        let response=await fetch("/hello?name=tester",{
+          method:"GET"
+        });
+        let data=await response.json();
+        console.log(data);
+        alert(data.message);
+      } catch (error) {
+        console.error("Error:", error);
+        alert("請求失敗，請稍後再試");
+      }
+    }
+    async function talk(){
+      try {
+        let response=await fetch("/talk",{
+          method:"GET"
+        });
+        let data=await response.json();
+        console.log(data);
+        alert(data.message);
+      } catch (error) {
+        console.error("Error:", error);
+        alert("請求失敗，請稍後再試");
+      }
+    }
+  </script>
 
+  <h2>留言系統</h2>
+  <div>
+    <input type="text" id="name" placeholder="作者">
+    <input type="text" id="content" placeholder="內容">
+    <button onclick="postMessage();">送出</button>
+  </div>
+  <div id="board"> </div>  
   <h2>連線測試方法</h2>
   <button onclick="deleteMessage();">deleteMessage</button>
-  <button onclick="connectGET();">GETMessage</button>
-  <button onclick="sendteMessage();">使用Fetch測試RESTful</button>
+  <button onclick="getmessage();">GETMessage</button>
   <script>
-    async function sendteMessage(){
-      let response=await fetch("/api/message",{
-        method:"POST",
-        body:JSON.stringify({"author":123,"content":123})
-      });
-      let data=await response.json();
-      console.log(data);
+    async function postMessage(){
+      let name=document.querySelector("#name").value;
+      let content=document.querySelector("#content").value;
+      console.log(name,content);
+      
+      try {
+        let response=await fetch("/api/message",{
+          method:"POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body:JSON.stringify({"author":name,"content":content})
+        });
+        let data=await response.json();
+        if (data.ok){
+          getmessage();
+        }
+        console.log(data);
+        
+        // 清空輸入框
+        document.querySelector("#name").value = "";
+        document.querySelector("#content").value = "";
+        
+        // 自動刷新消息列表
+        await getmessage();
+      } catch (error) {
+        console.error("Error:", error);
+        alert("發送消息失敗，請稍後再試");
+      }
     }
-    async function connectGET(){
+    async function getmessage(){
       let response=await fetch("/api/message",{
         method:"GET"
       });
       let data=await response.json();
-      console.log(data);
-    }
+      let board=document.querySelector("#board");
+      board.innerHTML="";
+      for(let i=0;i<data.length;i++){
+        board.innerHTML+="<div>"+
+          data[i].author+": "+
+          data[i].content+
+          "<button onclick='deleteMessage("+data[i].id+")'>刪除</button>"+
+        "</div>";
+    }}
 
-    async function deleteMessage(){
-      let response=await fetch("/api/message/6",{
+    async function deleteMessage(id){
+      let response=await fetch("/api/message/"+id,{
         method:"DELETE",
       });
       let result=await response.json();
-      console.log(result);
+      if (result.ok){
+        getmessage();
+      }
     }
   </script>
-
   <h2>next</h2>
   <div>
     <a href="http://127.0.0.1:8000/page.html">Another page</a>
